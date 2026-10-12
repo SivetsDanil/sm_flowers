@@ -1,0 +1,16 @@
+{
+  "products": [
+    {"title": "Белая нежность", "description": "", "price": 6700, "old_price": null, "image": "/assets/uploads/bouquet_01.jpeg", "active": true},
+    {"title": "Букет нежных роз", "description": "", "price": 6500, "old_price": null, "image": "/assets/uploads/bouquet_02.jpeg", "active": true},
+    {"title": "Нежность в деталях", "description": "", "price": 7800, "old_price": null, "image": "/assets/uploads/bouquet_03.jpeg", "active": true},
+    {"title": "Дофаминовый букет", "description": "", "price": 11500, "old_price": null, "image": "/assets/uploads/bouquet_04.jpeg", "active": true},
+    {"title": "Голубая нежность", "description": "", "price": 7500, "old_price": null, "image": "/assets/uploads/bouquet_05.jpeg", "active": true},
+    {"title": "Майские пионы", "description": "", "price": 6800, "old_price": null, "image": "/assets/uploads/bouquet_06.jpeg", "active": true},
+    {"title": "Светлый букет хризантем", "description": "", "price": 5200, "old_price": null, "image": "/assets/uploads/bouquet_07.jpeg", "active": true},
+    {"title": "Букет комплимент", "description": "", "price": 3700, "old_price": null, "image": "/assets/uploads/bouquet_08.jpeg", "active": true},
+    {"title": "Букет из прекрасных Эквадорских роз", "description": "", "price": 6300, "old_price": null, "image": "/assets/uploads/bouquet_09.jpeg", "active": true},
+    {"title": "Хризантема \"шляпа\"", "description": "нежная хризантема собрана в стиле шляпы в бархатной упаковке", "price": 7500, "old_price": null, "image": "/assets/uploads/bouquet_10.jpeg", "active": true},
+    {"title": "Дофаминовая композиция в шляпе", "description": "Композиция в шляпе из гортензии, розы Кения, пиона, розы Эквадор, розы Сицилии, гипсофилы и эвкалипта", "price": 5700, "old_price": null, "image": "/assets/uploads/bouquet_11.jpeg", "active": true},
+    {"title": "Композиция корзиночка", "description": "Роза Испания и Кения, хризантемы, лизиантус, гвоздика кустовая", "price": 3200, "old_price": null, "image": "/assets/uploads/bouquet_12.jpeg", "active": true}
+  ]
+}
