@@ -1464,6 +1464,8 @@
     <p>Менеджер уточнит актуальный состав, стоимость и удобное время доставки.</p>
     <div class="modal-actions">
       <form id="public-order-form" style="display:grid;gap:14px;text-align:left;width:100%">
+        <input type="hidden" name="form-name" value="orders">
+  <input type="hidden" name="bot-field" style="display:none">
         <div id="order-summary"></div>
         <label>Имя<input name="name" required></label>
         <label>Телефон<input name="phone" required></label>
