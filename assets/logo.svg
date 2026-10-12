@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 170">
+<text x="10" y="85" font-family="Georgia,serif" font-size="72" fill="#22251f">SM-Flowers</text>
+<text x="13" y="128" font-family="Arial,sans-serif" font-size="22" letter-spacing="5" fill="#6c785f">СТУДИЯ ЦВЕТОВ</text>
+<g transform="translate(475 18)" fill="none" stroke="#9a9d7d" stroke-width="3">
+<path d="M55 130C48 90 54 54 70 12"/><circle cx="70" cy="20" r="16"/>
+<circle cx="42" cy="38" r="16"/><circle cx="98" cy="38" r="16"/>
+<circle cx="45" cy="75" r="16"/><circle cx="95" cy="75" r="16"/>
+</g></svg>

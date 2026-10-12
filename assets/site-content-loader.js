@@ -1,0 +1,38 @@
+/* SM Flowers live CMS loader: all editable public copy/media/products comes from Supabase. */
+(()=>{
+  const SUPABASE_ORIGIN='https://avlozhwwvjqiypifoxox.supabase.co';
+  const SUPABASE_KEY='sb_publishable_3FgdTAmKB8kw2QTrrVPA5g_vb1lya1d';
+  const BUCKET='bouquets', API=`${SUPABASE_ORIGIN}/rest/v1`;
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const mediaUrl=u=>{if(!u)return'';const v=String(u).trim();if(v.startsWith('/media/'))return `${SUPABASE_ORIGIN}/storage/v1/object/public/${BUCKET}/${v.slice(7).replace(/^product\//i,'')}`;try{const x=new URL(v),n=`/storage/v1/object/public/${BUCKET}/`,i=x.pathname.indexOf(n);return i>=0?`${SUPABASE_ORIGIN}${n}${x.pathname.slice(i+n.length)}${x.search||''}`:v}catch{return v}};
+  const json=async p=>{const r=await fetch(`${API}${p}`,{headers:{Accept:'application/json',apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`},cache:'no-store'});if(!r.ok)throw new Error(`${r.status}: ${await r.text()}`);return r.json()};
+  const setText=(selector,value)=>{const e=document.querySelector(selector);if(e&&value!=null)e.textContent=value};
+  const map={
+    'Главная':[['.hero-copy .eyebrow','hero_eyebrow'],['#hero-title','hero_title'],['.hero-description p','hero_description'],['.hero-actions .button','hero_primary_button'],['.hero-actions .text-link','hero_secondary_button']],
+    'О студии':[['.intro .eyebrow','about_eyebrow'],['.intro .section-title','about_title'],['.intro-text p','about_text'],['.intro-text .text-link','about_link'],['.signature','about_signature']],
+    'Коллекции':[['.collections .section-heading .eyebrow','collections_eyebrow'],['#collections-title','collections_title'],['.section-heading a.text-link','collections_link']],
+    'На заказ':[['.statement-copy .eyebrow','custom_eyebrow'],['#custom-title','custom_title'],['.statement-copy p','custom_text'],['.statement-copy .text-link','custom_link']],
+    'Букеты':[['.products .section-heading .eyebrow','bouquets_eyebrow'],['#products-title','bouquets_title'],['.products .section-heading > p','bouquets_note']],
+    'Философия':[['.values-intro .eyebrow','values_eyebrow'],['#values-title','values_title'],['.values-intro > p:last-child','values_intro'],['.value-item:nth-child(1) h3','value_1_title'],['.value-item:nth-child(1) p','value_1_text'],['.value-item:nth-child(2) h3','value_2_title'],['.value-item:nth-child(2) p','value_2_text'],['.value-item:nth-child(3) h3','value_3_title'],['.value-item:nth-child(3) p','value_3_text'],['.value-item:nth-child(4) h3','value_4_title'],['.value-item:nth-child(4) p','value_4_text']],
+    'Жизнь студии':[['.gallery .section-heading .eyebrow','life_eyebrow'],['.gallery .section-heading h2','life_instagram_handle'],['.gallery .section-heading .text-link','life_instagram_button']],
+    'Финальный блок':[['.final-copy .eyebrow','final_eyebrow'],['#final-title','final_title'],['.final-copy > p','final_text'],['.final-actions .button','final_call_button'],['.final-actions .button--outline','final_telegram_button']],
+    'Контакты':[['.footer-brand','footer_brand'],['.footer-column:nth-child(2) h3','footer_nav_title'],['.footer-column:nth-child(3) h3','footer_contacts_title'],['.footer-column:nth-child(4) h3','footer_studio_title'],['.footer-column:nth-child(4) p:first-of-type','studio_address'],['.footer-column:nth-child(4) p:last-of-type','studio_hours'],['.footer-bottom span:first-child','footer_copyright'],['.footer-bottom span:last-child','footer_tagline']],
+    'Навигация':[['.nav-links a:nth-child(1)','nav_collections'],['.nav-links a:nth-child(2)','nav_bouquets'],['.nav-links a:nth-child(3)','nav_custom'],['.nav-links a:nth-child(4)','nav_about'],['.nav-links a:nth-child(5)','nav_contacts'],['.header-phone','header_phone']]
+  };
+  const mediaKey=slot=>({hero:'hero',custom:'custom_art',final:'final_art'}[slot]||slot);
+  const applyText=rows=>rows.forEach(row=>{for(const [selector,key] of(map[row.section]||[]))if(row.content_key===key)setText(selector,row.content)});
+  const applyStudioRoute=(rows)=>{
+    const label=rows.find(x=>x.section==='Контакты'&&x.content_key==='studio_map_label'&&x.is_visible!==false)?.content||'Построить маршрут →';
+    const url=rows.find(x=>x.content_key==='studio_map_url'&&x.is_visible!==false)?.content||'https://yandex.ru/maps/?rtext=~Москва%2C%20Ленинский%20проспект%2C%2094А&rtt=auto';
+    const address=document.querySelector('.footer-column:nth-child(4) p:first-of-type');
+    const hours=document.querySelector('.footer-column:nth-child(4) p:last-of-type');
+    if(!address||!hours)return;
+    let link=document.querySelector('.sm-studio-route-link');
+    if(!link){link=document.createElement('a');link.className='sm-studio-route-link';link.target='_blank';link.rel='noopener';link.style.marginTop='10px';address.insertAdjacentElement('afterend',link)}
+    link.href=url;link.textContent=label;
+    if(hours.previousElementSibling!==link)hours.parentElement.insertBefore(link,hours);
+  };
+  const renderProducts=products=>{const g=document.getElementById('product-grid');if(!g)return;g.innerHTML=(Array.isArray(products)?products:[]).map((p,i)=>`<article class="product visible" data-reveal="false"><div class="product-image"><span class="product-number">${String(i+1).padStart(2,'0')}</span><img src="${esc(mediaUrl(p.image_url))}" alt="${esc(p.name)}" loading="eager" decoding="async"></div><div class="product-info"><div><h3>${esc(p.name)}</h3><p>${esc(p.description||'')}</p><p><strong>${Number(p.price||0).toLocaleString('ru-RU')} ₽</strong></p></div><button class="order-button" type="button" data-bouquet="${esc(p.name)}" data-product-id="${esc(p.id)}" data-product-name="${esc(p.name)}" data-product-price="${Number(p.price||0)}">Заказать</button></div></article>`).join('')};
+  const run=async()=>{const results=await Promise.allSettled([json('/site_content?select=section,content_key,content,is_visible&is_visible=eq.true&order=sort_order.asc,id.asc'),json('/site_media?select=section,slot_key,image_url,alt_text,is_visible&is_visible=eq.true&order=sort_order.asc,id.asc'),json('/products?select=id,name,description,price,image_url,is_active,sort_order,updated_at&is_active=eq.true&order=sort_order.asc,id.asc')]);const texts=results[0].status==='fulfilled'?results[0].value:[],media=results[1].status==='fulfilled'?results[1].value:[],products=results[2].status==='fulfilled'?results[2].value:[];applyText(texts);applyStudioRoute(texts);const by=(s,slot)=>media.find(x=>x.section===s&&x.slot_key===mediaKey(slot))?.image_url;const img=(sel,u)=>{const e=document.querySelector(sel);if(e&&u)e.src=mediaUrl(u)};img('.hero-visual img',by('Главная','hero'));img('.statement-art img',by('На заказ','custom'));img('.final-art img',by('Финальный блок','final'));document.querySelectorAll('.collection-card img').forEach((e,i)=>{const u=by('Коллекции',`collection_${i+1}`);if(u)e.src=mediaUrl(u)});document.querySelectorAll('.gallery-item img').forEach((e,i)=>{const u=by('Жизнь студии',`life_photo_${i+1}`)||by('Жизнь студии',`gallery_photo_${i+1}`);if(u){e.src=mediaUrl(u);e.alt=media.find(x=>x.section==='Жизнь студии'&&(x.slot_key===`life_photo_${i+1}`||x.slot_key===`gallery_photo_${i+1}`))?.alt_text||''}});renderProducts(products);document.querySelectorAll('[data-reveal]').forEach(e=>e.classList.add('visible'));};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
+})();

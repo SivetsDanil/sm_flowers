@@ -1,0 +1,148 @@
+/* SM Flowers — mobile layout
+   Loaded after the main stylesheet. Desktop is intentionally untouched. */
+@media (max-width: 760px) {
+  :root { --mobile-gutter: 18px; }
+  html { overflow-x: hidden; }
+  body { min-width: 0; overflow-x: hidden; font-size: 14px; }
+
+  [data-reveal],
+  [data-reveal].visible { opacity: 1 !important; transform: none !important; }
+
+  .header-inner,
+  .intro,
+  .section-heading,
+  .collection-grid,
+  .product-grid { width: calc(100% - (var(--mobile-gutter) * 2)); }
+
+  .site-header { position: absolute; }
+  .header-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    min-height: 72px;
+    border-bottom-color: rgba(255,255,255,.28);
+  }
+  .brand { position: relative; z-index: 22; }
+  .brand strong { font-size: 25px; }
+  .brand span { margin-top: 4px; font-size: 7px; letter-spacing: .22em; }
+  .nav-links,
+  .header-phone { display: none; }
+  .menu-toggle { display: block; position: relative; z-index: 22; }
+  body.menu-open .menu-toggle span:first-child { transform: translateY(7px) rotate(45deg); }
+  body.menu-open .menu-toggle span:nth-child(2) { opacity: 0; }
+  body.menu-open .menu-toggle span:last-child { transform: translateY(-7px) rotate(-45deg); }
+
+  body.menu-open .nav-links {
+    position: fixed;
+    inset: 72px 0 0;
+    z-index: 21;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px var(--mobile-gutter) 30px;
+    background: var(--olive-dark);
+    overflow-y: auto;
+  }
+  body.menu-open .nav-links a {
+    display: flex;
+    align-items: center;
+    min-height: 58px;
+    border-bottom: 1px solid rgba(255,255,255,.18);
+    color: #fff;
+    font-size: 11px;
+    letter-spacing: .16em;
+  }
+
+  .hero { display: flex; flex-direction: column; min-height: auto; }
+  .hero-copy {
+    min-height: 610px;
+    padding: 125px var(--mobile-gutter) 42px;
+    justify-content: flex-end;
+  }
+  .hero-copy .display { max-width: 100%; font-size: clamp(54px, 16vw, 76px); line-height: .88; }
+  .hero-copy .display em { margin-left: .35em; }
+  .hero-description { grid-template-columns: 38px 1fr; gap: 14px; max-width: 100%; margin-top: 30px; }
+  .hero-description p { font-size: 13px; line-height: 1.55; }
+  .hero-actions { flex-wrap: wrap; gap: 14px; margin-top: 24px; }
+  .hero-actions .button { width: 100%; }
+  .hero-actions .text-link { margin-left: 2px; }
+  .hero-visual { min-height: 58vw; height: 72vw; max-height: 520px; }
+  .hero-visual img { transform: scale(1.02); }
+  .hero-note { display: none; }
+  .scroll-mark { display: none; }
+
+  .intro { display: block; padding: 72px 0 82px; }
+  .intro .eyebrow { display: block; }
+  .intro .section-title { display: block; font-size: clamp(39px, 12vw, 56px); }
+  .intro-text { display: block; margin-top: 34px; padding-bottom: 0; }
+  .intro-text p { display: block; margin-bottom: 22px; }
+  .signature { display: block; margin-top: 28px; font-size: 23px; }
+
+  .collections { padding-bottom: 82px; }
+  .section-heading { display: block; align-items: flex-start; margin-bottom: 28px; }
+  .section-heading .eyebrow,
+  .section-heading .section-title { display: block; }
+  .section-heading .text-link { display: inline-flex; margin-top: 18px; }
+  .section-title { font-size: clamp(39px, 12vw, 56px); }
+  .collection-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .collection-card,
+  .collection-card:nth-child(2) { min-height: 0; height: 112vw; max-height: 520px; margin-top: 0; }
+  .collection-card img { object-position: center; }
+  .collection-meta { right: 18px; bottom: 18px; left: 18px; }
+  .collection-meta h3 { font-size: 34px; }
+
+  .statement { display: flex; flex-direction: column; min-height: 0; }
+  .statement-art { min-height: 96vw; height: 96vw; max-height: 560px; }
+  .statement-copy { padding: 66px var(--mobile-gutter) 74px; }
+  .statement-copy .section-title { font-size: clamp(39px, 12vw, 56px); }
+  .statement-copy p { margin: 28px 0; font-size: 13px; }
+  .statement-index { top: 16px; right: 18px; }
+
+  .products { padding: 82px 0; }
+  .product-grid { display: grid; grid-template-columns: 1fr; gap: 46px; }
+  .product,
+  .product:nth-child(2),
+  .product:nth-child(3) { grid-column: auto; margin-top: 0; }
+  .product-image { aspect-ratio: .9; }
+  .product-image img { object-position: center; }
+  .product-info { padding-top: 14px; }
+  .product-info h3 { font-size: 29px; }
+  .product-info p { font-size: 13px; }
+  .product .button { width: 100%; margin-top: 12px; }
+
+  .button { min-height: 50px; width: 100%; padding: 0 18px; }
+  input, textarea, select { font-size: 16px; }
+
+  /* Prevent the mobile order modal's entrance animation/backdrop from eating the first tap. */
+  .modal { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .modal-box { transform: none !important; transition: none !important; touch-action: manipulation; }
+  .modal-box input,
+  .modal-box textarea,
+  .modal-box select,
+  .modal-box button,
+  .modal-box label { touch-action: manipulation; }
+  .modal-box input,
+  .modal-box textarea,
+  .modal-box select { -webkit-appearance: none; appearance: none; }
+  .modal-actions { touch-action: manipulation; }
+
+  .modal,
+  .modal-content,
+  .order-modal { max-width: calc(100vw - 24px); }
+
+  footer, .footer, .site-footer { overflow: hidden; }
+  footer .grid, .footer .grid, .site-footer .grid,
+  footer .columns, .footer .columns, .site-footer .columns { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 390px) {
+  .hero-copy { min-height: 575px; }
+  .hero-copy .display { font-size: 52px; }
+  .hero-description { grid-template-columns: 25px 1fr; gap: 11px; }
+  .collection-card,
+  .collection-card:nth-child(2) { height: 118vw; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

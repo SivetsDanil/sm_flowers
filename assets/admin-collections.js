@@ -1,0 +1,26 @@
+(()=>{
+const DB='https://avlozhwwvjqiypifoxox.supabase.co',KEY='sb_publishable_3FgdTAmKB8kw2QTrrVPA5g_vb1lya1d',BUCKET='bouquets';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const client=()=>window.supabase?.createClient(DB,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const media=u=>{if(!u)return'';if(String(u).startsWith('/media/'))return DB+'/storage/v1/render/image/public/'+BUCKET+'/'+String(u).slice(7);return u};
+async function upload(s,f){const ext=(f.name.split('.').pop()||'jpg').toLowerCase(),path='collections/'+crypto.randomUUID()+'.'+ext,r=await s.storage.from(BUCKET).upload(path,f,{contentType:f.type,upsert:false});if(r.error)throw r.error;return DB+'/storage/v1/render/image/public/'+BUCKET+'/'+path}
+async function load(){
+ const s=client();if(!s)return;
+ const q=await s.from('categories').select('*').order('sort_order').order('id');if(q.error)throw q.error;
+ const panel=document.getElementById('collectionsAdminPanel');if(!panel)return;
+ const rows=q.data||[];
+ panel.innerHTML='<div class="actions"><h3>Коллекции</h3><button type="button" class="secondary" id="colNew">Новая коллекция</button></div><p class="muted">Коллекции являются единым источником для выбора у букетов. Изменения сохраняются в Supabase.</p><div id="colList">'+(rows.length?rows.map(c=>'<div class="row" data-col-row="'+esc(c.id)+'"><div class="actions"><img class="thumb" src="'+esc(media(c.image_url))+'" alt=""><div style="flex:1"><b>'+esc(c.name)+'</b><br><span class="muted">'+(c.is_active===false?'Скрыта':'Показывается')+' · порядок '+esc(c.sort_order)+'</span><br><button type="button" data-col-edit="'+esc(c.id)+'">Изменить</button> <button type="button" class="danger" data-col-delete="'+esc(c.id)+'">Удалить</button></div></div></div>').join(''):'<p class="muted">Коллекций пока нет.</p>')+'</div><div id="colForm" class="field hidden"></div>';
+ panel.querySelector('#colNew').onclick=()=>form(null,rows);
+ panel.querySelectorAll('[data-col-edit]').forEach(b=>b.onclick=()=>form(rows.find(x=>String(x.id)===b.dataset.colEdit),rows));
+ panel.querySelectorAll('[data-col-delete]').forEach(b=>b.onclick=async()=>{const c=rows.find(x=>String(x.id)===b.dataset.colDelete);if(!c||!confirm('Удалить коллекцию «'+c.name+'»? Букеты останутся, но потеряют эту коллекцию.'))return;const r=await s.from('categories').delete().eq('id',c.id);if(r.error){alert(r.error.message);return}await load();});
+}
+function form(c,rows){
+ const panel=document.getElementById('collectionsAdminPanel'),box=panel.querySelector('#colForm');box.classList.remove('hidden');
+ box.innerHTML='<h4>'+(c?'Редактировать коллекцию':'Новая коллекция')+'</h4><label>Название<input id="colName" value="'+esc(c?.name||'')+'" required></label><label>Порядок<input id="colOrder" type="number" value="'+esc(c?.sort_order??((rows||[]).length+1))+'"></label><label>Главное фото<input id="colFile" type="file" accept="image/*"></label>'+(c?.image_url?'<img class="thumb" src="'+esc(media(c.image_url))+'" alt="">':'')+'<label><input id="colActive" type="checkbox" '+(c?.is_active!==false?'checked':'')+' style="width:auto"> Показывать на сайте</label><div class="actions"><button id="colSave">Сохранить</button><button type="button" class="secondary" id="colCancel">Отмена</button></div><p id="colMsg" class="muted"></p>';
+ box.querySelector('#colCancel').onclick=()=>box.classList.add('hidden');
+ box.querySelector('#colSave').onclick=async()=>{const s=client(),name=box.querySelector('#colName').value.trim(),order=Number(box.querySelector('#colOrder').value||0),active=box.querySelector('#colActive').checked,f=box.querySelector('#colFile').files[0],msg=box.querySelector('#colMsg');if(!name){msg.textContent='Введите название';return}try{let image_url=c?.image_url||null;if(f)image_url=await upload(s,f);const payload={name,sort_order:order,is_active:active,image_url};const r=c?await s.from('categories').update(payload).eq('id',c.id):await s.from('categories').insert(payload);if(r.error)throw r.error;msg.textContent='Сохранено';setTimeout(load,300)}catch(e){msg.textContent=e.message}};
+}
+function install(){const f=document.getElementById('adminFrame');const d=f?.contentDocument;if(!d||!d.body)return;let tabs=d.querySelector('.tabs'),site=d.getElementById('site');if(!tabs||!site)return;if(!d.getElementById('collectionsTab')){const b=d.createElement('button');b.id='collectionsTab';b.type='button';b.textContent='Коллекции';b.dataset.tab='collectionsAdmin';tabs.insertBefore(b,site);const p=d.createElement('section');p.id='collectionsAdmin';p.className='card panel hidden';p.innerHTML='<div id="collectionsAdminPanel"></div>';site.parentElement.insertBefore(p,site);b.onclick=()=>{d.querySelectorAll('.panel').forEach(x=>x.classList.add('hidden'));d.querySelectorAll('[data-tab]').forEach(x=>x.classList.remove('active'));p.classList.remove('hidden');b.classList.add('active');load().catch(e=>{const x=d.getElementById('collectionsAdminPanel');if(x)x.innerHTML='<div class="notice">Не удалось загрузить коллекции: '+esc(e.message)+'</div>'});};}}
+function start(){const f=document.getElementById('adminFrame');if(!f)return;f.addEventListener('load',()=>{setTimeout(install,100);setTimeout(install,800)});setInterval(install,1500);}
+start();
+})();
