@@ -2,7 +2,7 @@
   // Эти переменные будут взяты из Netlify environment variables
   // НЕ вписывай сюда реальные токены!
   const TG_BOT_TOKEN = '-------';
-  const TG_CHAT_ID = '5235744796'; // Например: '123456789'
+  const TG_CHAT_ID = '-------'; // Например: '123456789'
 
   const form = document.getElementById('public-order-form');
   if (!form) return;
