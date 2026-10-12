@@ -1,7 +1,7 @@
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
 };
 
 const TOKEN = process.env.TG_BOT_TOKEN;
@@ -38,12 +38,25 @@ function getUrlButton(markup) {
 }
 
 exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers: CORS, body: '' };
-  if (event.httpMethod === 'GET')  return { statusCode: 200, headers: CORS, body: 'tg function alive ✅' };
-  if (event.httpMethod !== 'POST') return { statusCode: 405, headers: CORS, body: 'nope' };
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers: CORS, body: 'ok' };
+  }
+
+  if (event.httpMethod === 'GET') {
+    return { statusCode: 200, headers: CORS, body: 'tg function alive ✅' };
+  }
+
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers: CORS, body: 'nope' };
+  }
 
   let body;
-  try { body = JSON.parse(event.body || '{}'); } catch { return { statusCode: 400, headers: CORS, body: 'bad json' }; }
+  try {
+    // Парсим JSON из text/plain (приходит как строка)
+    body = JSON.parse(event.body || '{}');
+  } catch {
+    return { statusCode: 400, headers: CORS, body: 'bad json' };
+  }
 
   // ========== НАЖАТИЕ КНОПКИ (приходит с вебхука) ==========
   if (body.callback_query) {
