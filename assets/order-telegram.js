@@ -1,5 +1,9 @@
 (function(){
-  const FN_URL = 'https://frolicking-seahorse-0c10ff.netlify.app/.netlify/functions/tg';
+  // Ключи прямо в коде, как у прошлого разработчика
+  const TG_BOT_TOKEN = '8636942868:AAHPcjYpjkYae8_m6VYchSgFQyfPyWmEgLs';
+  const TG_CHAT_ID = 'ВСТАВЬ_СЮДА_СВОЙ_CHAT_ID'; // Например: 123456789
+  const API = 'https://api.telegram.org/bot' + TG_BOT_TOKEN;
+
   const form = document.getElementById('public-order-form');
   if (!form) return;
 
@@ -9,34 +13,66 @@
     const d = new FormData(form);
     const summary = document.getElementById('order-summary')?.textContent || '';
     const price = (summary.match(/[\d\s\u00A0]+₽/) || [''])[0].replace(/\D/g, '');
+    const tgUser = (d.get('telegram') || '').trim();
+
+    // Формируем кнопки
+    const keyboard = { inline_keyboard: [] };
+    if (tgUser) {
+      keyboard.inline_keyboard.push([{
+        text: '✉️ Написать',
+        url: 'https://t.me/' + tgUser.replace(/^@/, '')
+      }]);
+    }
+    keyboard.inline_keyboard.push([{ text: '✅ Принять', callback_data: 'st:accept' }]);
+
+    const lines = [
+      '👤 Клиент: ' + (d.get('name') || '—'),
+      '📞 Телефон: ' + (d.get('phone') || '—'),
+      tgUser ? '💬 Telegram: ' + tgUser : '',
+      price ? '💰 Сумма: ' + Number(price).toLocaleString('ru-RU') + ' ₽' : '',
+      d.get('address') ? '📍 Адрес: ' + d.get('address') : '',
+      d.get('date') ? '📅 Дата: ' + d.get('date') : '',
+      d.get('time') ? '🕐 Время: ' + d.get('time') : '',
+      d.get('comment') ? '💬 Комментарий: ' + d.get('comment') : '',
+      '',
+      '💐 Состав заказа:',
+      '· ' + (summary || '—'),
+      '',
+      '📌 Статус: 🆕 Новый'
+    ].filter(Boolean);
 
     msg.textContent = 'Отправляем заказ…';
 
     try {
-      const payload = JSON.stringify({
-        name: d.get('name') || '', phone: d.get('phone') || '',
-        email: d.get('email') || '', telegram: d.get('telegram') || '',
-        address: d.get('address') || '', date: d.get('date') || '',
-        time: d.get('time') || '', comment: d.get('comment') || '',
-        bouquet: summary, total: price
-      });
-
-      const r = await fetch(FN_URL, {
+      // 1. Отправляем сообщение с кнопками напрямую в Telegram
+      const sent = await fetch(API + '/sendMessage', {
         method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: payload
-      });
-      const j = await r.json();
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TG_CHAT_ID,
+          text: '🔔 НОВЫЙ ЗАКАЗ\n\n' + lines.join('\n'),
+          reply_markup: keyboard
+        })
+      }).then(r => r.json());
 
-      if (j.ok) {
-        msg.textContent = '✅ Заказ отправлен! Мы свяжемся с вами в ближайшее время.';
-        form.reset();
-      } else {
-        throw new Error(j.description || 'Ошибка отправки');
-      }
+      if (!sent.ok) throw new Error(sent.description || 'Ошибка Telegram');
+
+      // 2. Обновляем сообщение, добавляя его ID как номер заказа (чтобы функция знала, что менять)
+      await fetch(API + '/editMessageText', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: TG_CHAT_ID,
+          message_id: sent.result.message_id,
+          text: '🔔 НОВЫЙ ЗАКАЗ #' + sent.result.message_id + '\n\n' + lines.join('\n'),
+          reply_markup: keyboard
+        })
+      });
+
+      msg.textContent = '✅ Заказ отправлен! Мы свяжемся с вами в ближайшее время.';
+      form.reset();
     } catch (err) {
       console.error('Telegram error:', err);
-      msg.textContent = '❌ Не удалось отправить. Позвоните нам: +7 917 564-52-13';
     }
   });
 })();
