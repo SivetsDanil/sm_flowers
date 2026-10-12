@@ -1,48 +1,47 @@
 (function(){
-  const TG_BOT_TOKEN = '8636942868:AAHPcjYpjkYae8_m6VYchSgFQyfPyWmEgLs';
-  const TG_CHAT_ID   = '5235744796';
   const form = document.getElementById('public-order-form');
   if (!form) return;
 
   form.addEventListener('submit', async e => {
     e.preventDefault();
     const msg = document.getElementById('public-order-msg');
-    const data = new FormData(form);
-    data.set('bouquet', document.getElementById('order-summary')?.textContent || '');
-
-    const text = '🌷 НОВЫЙ ЗАКАЗ SM FLOWERS\n🌸 ' + (data.get('bouquet') || '') +
-      '\nИмя: ' + (data.get('name') || '') +
-      '\nТелефон: ' + (data.get('phone') || '') +
-      (data.get('email')   ? '\nEmail: ' + data.get('email') : '') +
-      (data.get('telegram')? '\nTelegram: ' + data.get('telegram') : '') +
-      (data.get('address') ? '\nАдрес: ' + data.get('address') : '') +
-      (data.get('date')    ? '\nДоставка: ' + data.get('date') + ' ' + (data.get('time') || '') : '') +
-      (data.get('comment') ? '\nКомментарий: ' + data.get('comment') : '');
+    const d = new FormData(form);
+    const summary = document.getElementById('order-summary')?.textContent || '';
+    const price = (summary.match(/[\d\s\u00A0]+₽/) || [''])[0].replace(/\D/g, '');
 
     msg.textContent = 'Отправляем заказ…';
-    let tgOk = false;
+    let ok = false;
 
-    // Канал 1: Telegram — мгновенно
+    // 1) Telegram через серверную функцию
     try {
-      const r = await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage', {
+      const r = await fetch('/.netlify/functions/tg', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({chat_id: TG_CHAT_ID, text: text})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: d.get('name') || '', phone: d.get('phone') || '',
+          email: d.get('email') || '', telegram: d.get('telegram') || '',
+          address: d.get('address') || '', date: d.get('date') || '',
+          time: d.get('time') || '', comment: d.get('comment') || '',
+          bouquet: summary, total: price
+        })
       });
-      tgOk = (await r.json()).ok === true;
-    } catch (err) { console.error('TG:', err); }
+      const j = await r.json();
+      ok = j.ok === true;
+    } catch (err) { console.error('order fn:', err); }
 
-    // Канал 2: Netlify Forms — журнал в панели
+    // 2) Дубль в журнал Netlify Forms
     try {
-      data.set('form-name', 'orders');
+      const fd = new FormData(form);
+      fd.set('form-name', 'orders');
+      fd.set('bouquet', summary);
       await fetch('/', {
         method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: new URLSearchParams(data).toString()
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(fd).toString()
       });
-    } catch (err) { console.error('Netlify Forms:', err); }
+    } catch (err) { console.error('forms:', err); }
 
-    if (tgOk) {
+    if (ok) {
       msg.textContent = '✅ Заказ отправлен! Мы свяжемся с вами в ближайшее время.';
       form.reset();
     } else {
