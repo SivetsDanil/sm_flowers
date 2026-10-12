@@ -1,7 +1,5 @@
 (function(){
-  const TG_BOT_TOKEN = '8636942868:AAHPcjYpjkYae8_m6VYchSgFQyfPyWmEgLs';
-  const TG_CHAT_ID = '5235744796'; // вставь свой chat_id из getUpdates
-
+  const FN_URL = 'https://frolicking-seahorse-0c10ff.netlify.app/.netlify/functions/tg';
   const form = document.getElementById('public-order-form');
   if (!form) return;
 
@@ -10,35 +8,28 @@
     const msg = document.getElementById('public-order-msg');
     const d = new FormData(form);
     const summary = document.getElementById('order-summary')?.textContent || '';
-
-    const text = '🌷 НОВЫЙ ЗАКАЗ SM FLOWERS\n\n' +
-      '💐 ' + summary +
-      '\n👤 Имя: ' + (d.get('name') || '') +
-      '\n📞 Телефон: ' + (d.get('phone') || '') +
-      (d.get('email') ? '\n✉️ Email: ' + d.get('email') : '') +
-      (d.get('telegram') ? '\n💬 Telegram: ' + d.get('telegram') : '') +
-      (d.get('address') ? '\n📍 Адрес: ' + d.get('address') : '') +
-      (d.get('date') ? '\n📅 Доставка: ' + d.get('date') + ' ' + (d.get('time') || '') : '') +
-      (d.get('comment') ? '\n📝 Комментарий: ' + d.get('comment') : '');
+    const price = (summary.match(/[\d\s\u00A0]+₽/) || [''])[0].replace(/\D/g, '');
 
     msg.textContent = 'Отправляем заказ…';
-
     try {
-      const r = await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage', {
+      const r = await fetch(FN_URL, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({chat_id: TG_CHAT_ID, text: text})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: d.get('name') || '', phone: d.get('phone') || '',
+          email: d.get('email') || '', telegram: d.get('telegram') || '',
+          address: d.get('address') || '', date: d.get('date') || '',
+          time: d.get('time') || '', comment: d.get('comment') || '',
+          bouquet: summary, total: price
+        })
       });
       const j = await r.json();
-
       if (j.ok) {
         msg.textContent = '✅ Заказ отправлен! Мы свяжемся с вами в ближайшее время.';
         form.reset();
-      } else {
-        throw new Error(j.description || 'Ошибка отправки');
-      }
+      } else throw new Error(j.description || 'error');
     } catch (err) {
-      console.error('Telegram error:', err);
+      console.error(err);
       msg.textContent = '❌ Не удалось отправить. Позвоните нам: +7 917 564-52-13';
     }
   });
