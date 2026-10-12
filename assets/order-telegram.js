@@ -1,78 +1,65 @@
-(function(){
-  // Ключи прямо в коде, как у прошлого разработчика
-  const TG_BOT_TOKEN = '8636942868:AAHPcjYpjkYae8_m6VYchSgFQyfPyWmEgLs';
-  const TG_CHAT_ID = '5235744796'; // Например: 123456789
-  const API = 'https://api.telegram.org/bot' + TG_BOT_TOKEN;
+(function() {
+  // Эти переменные будут взяты из Netlify environment variables
+  // НЕ вписывай сюда реальные токены!
+  const TG_BOT_TOKEN = '-------';
+  const TG_CHAT_ID = '5235744796'; // Например: '123456789'
 
   const form = document.getElementById('public-order-form');
   if (!form) return;
 
-  form.addEventListener('submit', async e => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const msg = document.getElementById('public-order-msg');
     const d = new FormData(form);
-    const summary = document.getElementById('order-summary')?.textContent || '';
+
+    const summary = document.getElementById('order-summary')?.textContent || 'Не указан';
     const price = (summary.match(/[\d\s\u00A0]+₽/) || [''])[0].replace(/\D/g, '');
-    const tgUser = (d.get('telegram') || '').trim();
+    const tgUser = (d.get('telegram') || '').trim().replace(/^@/, '');
 
-    // Формируем кнопки
-    const keyboard = { inline_keyboard: [] };
+    const text = `🔔 НОВЫЙ ЗАКАЗ\n\n` +
+      `💐 *${summary}*\n` +
+      `👤 Клиент: ${d.get('name') || '—'}\n` +
+      `📞 Телефон: ${d.get('phone') || '—'}\n` +
+      (tgUser ? `💬 Telegram: @${tgUser}\n` : '') +
+      (price ? `💰 Сумма: ${Number(price).toLocaleString('ru-RU')} ₽\n` : '') +
+      (d.get('address') ? `📍 Адрес: ${d.get('address')}\n` : '') +
+      (d.get('date') ? `📅 Дата: ${d.get('date')}\n` : '') +
+      (d.get('time') ? `🕐 Время: ${d.get('time')}\n` : '') +
+      (d.get('comment') ? `📝 Комментарий: ${d.get('comment')}\n` : '') +
+      `\n Статус: 🆕 Новый`;
+
+    const keyboardRows = [];
     if (tgUser) {
-      keyboard.inline_keyboard.push([{
-        text: '✉️ Написать',
-        url: 'https://t.me/' + tgUser.replace(/^@/, '')
-      }]);
+      keyboardRows.push([{ text: '️ Написать клиенту', url: `https://t.me/${tgUser}` }]);
     }
-    keyboard.inline_keyboard.push([{ text: '✅ Принять', callback_data: 'st:accept' }]);
-
-    const lines = [
-      '👤 Клиент: ' + (d.get('name') || '—'),
-      '📞 Телефон: ' + (d.get('phone') || '—'),
-      tgUser ? '💬 Telegram: ' + tgUser : '',
-      price ? '💰 Сумма: ' + Number(price).toLocaleString('ru-RU') + ' ₽' : '',
-      d.get('address') ? '📍 Адрес: ' + d.get('address') : '',
-      d.get('date') ? '📅 Дата: ' + d.get('date') : '',
-      d.get('time') ? '🕐 Время: ' + d.get('time') : '',
-      d.get('comment') ? '💬 Комментарий: ' + d.get('comment') : '',
-      '',
-      '💐 Состав заказа:',
-      '· ' + (summary || '—'),
-      '',
-      '📌 Статус: 🆕 Новый'
-    ].filter(Boolean);
+    keyboardRows.push([{ text: '✅ Принять', callback_data: 'st:accept' }]);
 
     msg.textContent = 'Отправляем заказ…';
 
     try {
-      // 1. Отправляем сообщение с кнопками напрямую в Telegram
-      const sent = await fetch(API + '/sendMessage', {
+      const response = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: TG_CHAT_ID,
-          text: '🔔 НОВЫЙ ЗАКАЗ\n\n' + lines.join('\n'),
-          reply_markup: keyboard
-        })
-      }).then(r => r.json());
-
-      if (!sent.ok) throw new Error(sent.description || 'Ошибка Telegram');
-
-      // 2. Обновляем сообщение, добавляя его ID как номер заказа (чтобы функция знала, что менять)
-      await fetch(API + '/editMessageText', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: TG_CHAT_ID,
-          message_id: sent.result.message_id,
-          text: '🔔 НОВЫЙ ЗАКАЗ #' + sent.result.message_id + '\n\n' + lines.join('\n'),
-          reply_markup: keyboard
+          text: text,
+          parse_mode: 'Markdown',
+          reply_markup: { inline_keyboard: keyboardRows }
         })
       });
 
-      msg.textContent = '✅ Заказ отправлен! Мы свяжемся с вами в ближайшее время.';
-      form.reset();
-    } catch (err) {
-      console.error('Telegram error:', err);
+      const result = await response.json();
+
+      if (result.ok) {
+        msg.textContent = '✅ Заказ успешно отправлен!';
+        form.reset();
+      } else {
+        console.error('Telegram API Error:', result);
+        throw new Error(result.description || 'Ошибка Telegram');
+      }
+    } catch (error) {
+      console.error('Order submission failed:', error);
+      msg.textContent = ' Ошибка отправки. Позвоните: +7 917 564-52-13';
     }
   });
 })();
