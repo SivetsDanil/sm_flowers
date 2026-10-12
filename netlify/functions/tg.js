@@ -14,28 +14,34 @@ async function tgRequest(method, payload) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
-  return r.json();
+  const res = await r.json();
+  if (!res.ok) console.error('❌ Telegram API Error:', method, res);
+  return res;
 }
 
 exports.handler = async (event) => {
-  console.log('🔔 Function triggered:', event.httpMethod);
+  console.log('--- ФУНКЦИЯ ЗАПУЩЕНА ---');
+  console.log('Метод:', event.httpMethod);
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, body: 'ok' };
+  if (event.httpMethod === 'GET') return { statusCode: 200, body: 'tg function alive ✅' };
   if (event.httpMethod !== 'POST') return { statusCode: 405, body: 'nope' };
 
-  if (!TOKEN || !CHAT_ID) {
-    console.error('❌ MISSING ENV VARS: TG_BOT_TOKEN or TG_CHAT_ID');
-    return { statusCode: 500, body: 'Missing environment variables' };
+  let body;
+  try {
+    body = JSON.parse(event.body || '{}');
+    console.log('Ключи в теле запроса:', Object.keys(body));
+  } catch (e) {
+    console.error('Ошибка парсинга JSON:', e);
+    return { statusCode: 400, body: 'bad json' };
   }
 
-  let body;
-  try { body = JSON.parse(event.body || '{}'); }
-  catch { return { statusCode: 400, body: 'bad json' }; }
-
-  // ОБРАБОТКА НАЖАТИЯ КНОПКИ
+  // Проверяем, есть ли нажатие кнопки
   if (body.callback_query) {
+    console.log('👆 НАЖАТИЕ КНОПКИ ОБНАРУЖЕНО!');
     const cb = body.callback_query;
-    console.log('👆 Callback received:', cb.data);
+    console.log('Данные кнопки (data):', cb.data);
+    console.log('ID нажатия (callback_query_id):', cb.id);
 
     const statusId = (cb.data || '').replace('st:', '');
     const step = FLOW.find(s => s.id === statusId);
@@ -45,35 +51,34 @@ exports.handler = async (event) => {
         const time = new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
         const newText = (cb.message.text || '') + `\n📌 Статус: ${step.line} (${time})`;
 
-        // Находим следующий шаг
         const currentIndex = FLOW.findIndex(s => s.id === statusId);
         const nextStep = FLOW[currentIndex + 1];
 
-        // Собираем клавиатуру для следующего шага
         const keyboard = { inline_keyboard: [] };
-
         // Сохраняем кнопку "Написать", если она была
         const urlBtn = cb.message.reply_markup?.inline_keyboard?.find(row => row.find(b => b.url))?.[0];
         if (urlBtn) keyboard.inline_keyboard.push([urlBtn]);
-
-        // Добавляем кнопку следующего статуса
+        // Добавляем кнопку следующего шага
         if (nextStep) {
           keyboard.inline_keyboard.push([{ text: nextStep.btn, callback_data: `st:${nextStep.id}` }]);
         }
 
-        // Обновляем текст и кнопки
+        console.log('Отправляем запрос на обновление текста сообщения...');
         await tgRequest('editMessageText', {
           chat_id: cb.message.chat.id,
           message_id: cb.message.message_id,
           text: newText,
           reply_markup: keyboard.inline_keyboard.length > 0 ? keyboard : undefined
         });
+      } else {
+        console.log('⚠️ Шаг не найден или нет сообщения. step:', step, 'message:', !!cb.message);
       }
     } catch (err) {
-      console.error('❌ Error editing message:', err);
+      console.error('❌ ОШИБКА в блоке try:', err);
     } finally {
-      // ЭТО ГЛАВНОЕ: ВСЕГДА отвечаем Telegram, что нажатие обработано,
-      // иначе кнопка будет крутить загрузку вечно!
+      // ЭТО САМОЕ ВАЖНОЕ: мы ВСЕГДА отвечаем Telegram, что нажатие обработано,
+      // даже если обновление текста провалилось. Это убирает "зависание" кнопки.
+      console.log('Отправляем answerCallbackQuery с id:', cb.id);
       await tgRequest('answerCallbackQuery', {
         callback_query_id: cb.id,
         text: 'Статус обновлен'
@@ -83,5 +88,6 @@ exports.handler = async (event) => {
     return { statusCode: 200, body: 'ok' };
   }
 
+  console.log('⚠️ В теле запроса НЕТ callback_query. Игнорируем.');
   return { statusCode: 200, body: 'ignored' };
 };
