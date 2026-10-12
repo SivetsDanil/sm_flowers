@@ -1,13 +1,16 @@
 backend:
   name: git-gateway
-  branch: main
+  branch: master
+
+site_url: https://frolicking-seahorse-0c10ff.netlify.app
+display_url: https://frolicking-seahorse-0c10ff.netlify.app
 
 media_folder: "assets/uploads"
 public_folder: "assets/uploads"
 
 collections:
   - name: "bouquets"
-    label: "🌷 Букеты"
+    label: "Букеты"
     editor:
       preview: false
     files:
