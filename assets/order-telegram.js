@@ -1,4 +1,5 @@
 (function(){
+  const FN_URL = 'https://frolicking-seahorse-0c10ff.netlify.app/.netlify/functions/tg';
   const form = document.getElementById('public-order-form');
   if (!form) return;
 
@@ -12,9 +13,9 @@
     msg.textContent = 'Отправляем заказ…';
     let ok = false;
 
-    // 1) Telegram через серверную функцию
+    // 1) Telegram через функцию Netlify (работает с любого домена благодаря CORS)
     try {
-      const r = await fetch('/.netlify/functions/tg', {
+      const r = await fetch(FN_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -29,17 +30,19 @@
       ok = j.ok === true;
     } catch (err) { console.error('order fn:', err); }
 
-    // 2) Дубль в журнал Netlify Forms
-    try {
-      const fd = new FormData(form);
-      fd.set('form-name', 'orders');
-      fd.set('bouquet', summary);
-      await fetch('/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(fd).toString()
-      });
-    } catch (err) { console.error('forms:', err); }
+    // 2) Журнал Netlify Forms — только когда сайт открыт с Netlify
+    if (location.hostname.endsWith('.netlify.app')) {
+      try {
+        const fd = new FormData(form);
+        fd.set('form-name', 'orders');
+        fd.set('bouquet', summary);
+        await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(fd).toString()
+        });
+      } catch (err) { console.error('forms:', err); }
+    }
 
     if (ok) {
       msg.textContent = '✅ Заказ отправлен! Мы свяжемся с вами в ближайшее время.';
