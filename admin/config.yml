@@ -1,0 +1,29 @@
+backend:
+  name: git-gateway
+  branch: main
+
+media_folder: "assets/uploads"
+public_folder: "assets/uploads"
+
+collections:
+  - name: "bouquets"
+    label: "🌷 Букеты"
+    editor:
+      preview: false
+    files:
+      - name: "catalog"
+        label: "Каталог букетов"
+        file: "content/products.json"
+        fields:
+          - name: products
+            label: "Букеты"
+            widget: list
+            allow_add: true
+            summary: "{{fields.title}} — {{fields.price}} ₽"
+            fields:
+              - {label: "Название", name: title, widget: string}
+              - {label: "Описание", name: description, widget: text, required: false}
+              - {label: "Цена (₽)", name: price, widget: number}
+              - {label: "Старая цена (₽)", name: old_price, widget: number, required: false}
+              - {label: "Фото", name: image, widget: image}
+              - {label: "Показывать на сайте", name: active, widget: boolean, default: true}
