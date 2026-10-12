@@ -1,7 +1,7 @@
 (function(){
   // Ключи прямо в коде, как у прошлого разработчика
   const TG_BOT_TOKEN = '8636942868:AAHPcjYpjkYae8_m6VYchSgFQyfPyWmEgLs';
-  const TG_CHAT_ID = 'ВСТАВЬ_СЮДА_СВОЙ_CHAT_ID'; // Например: 123456789
+  const TG_CHAT_ID = '5235744796'; // Например: 123456789
   const API = 'https://api.telegram.org/bot' + TG_BOT_TOKEN;
 
   const form = document.getElementById('public-order-form');
