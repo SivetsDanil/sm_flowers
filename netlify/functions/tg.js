@@ -76,8 +76,6 @@ exports.handler = async (event) => {
     } catch (err) {
       console.error('❌ ОШИБКА в блоке try:', err);
     } finally {
-      // ЭТО САМОЕ ВАЖНОЕ: мы ВСЕГДА отвечаем Telegram, что нажатие обработано,
-      // даже если обновление текста провалилось. Это убирает "зависание" кнопки.
       console.log('Отправляем answerCallbackQuery с id:', cb.id);
       await tgRequest('answerCallbackQuery', {
         callback_query_id: cb.id,
