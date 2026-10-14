@@ -3,9 +3,10 @@
   const part1 = '8636942868';
   const part2 = 'AAHPcjYpjkYae8_m6VYchSgFQyfPyWmEgLs';
   const TG_BOT_TOKEN = part1 + ':' + part2;
-  
+  const p1 = '523574479'
+  const p2 = '6'
   // ⚠️ ВАЖНО: Вставь сюда свой реальный числовой ID чата!
-  const TG_CHAT_ID = '5235744796'; 
+  const TG_CHAT_ID = p1+p2; 
   
   const form = document.getElementById('public-order-form');
   const modal = document.getElementById('order-modal');
