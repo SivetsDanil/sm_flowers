@@ -1,13 +1,4 @@
 (function() {
-  // Обфускация токена, чтобы не триггерить сканеры безопасности
-  const part1 = '8636942868';
-  const part2 = 'AAHPcjYpjkYae8_m6VYchSgFQyfPyWmEgLs';
-  const TG_BOT_TOKEN = part1 + ':' + part2;
-  const p1 = '523574479'
-  const p2 = '6'
-  // ⚠️ ВАЖНО: Вставь сюда свой реальный числовой ID чата!
-  const TG_CHAT_ID = p1+p2; 
-  
   const form = document.getElementById('public-order-form');
   const modal = document.getElementById('order-modal');
   const msg = document.getElementById('public-order-msg');
@@ -32,7 +23,7 @@
       (d.get('address') ? `📍 Адрес: ${d.get('address')}\n` : '') +
       (d.get('date') ? `📅 Дата: ${d.get('date')}\n` : '') +
       (d.get('time') ? `🕐 Время: ${d.get('time')}\n` : '') +
-      (d.get('comment') ? `📝 Комментарий: ${d.get('comment')}\n` : '') +
+      (d.get('comment') ? ` Комментарий: ${d.get('comment')}\n` : '') +
       `\n📌 Статус: 🆕 Новый`;
 
     const keyboardRows = [];
@@ -42,11 +33,11 @@
     keyboardRows.push([{ text: '✅ Принять', callback_data: 'st:accept' }]);
 
     try {
-      const response = await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+      // Отправляем на Netlify функцию (не блокируется в России)
+      const response = await fetch('https://frolicking-seahorse-0c10ff.netlify.app/.netlify/functions/tg', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          chat_id: TG_CHAT_ID,
           text: text,
           parse_mode: 'Markdown',
           reply_markup: { inline_keyboard: keyboardRows }
@@ -59,12 +50,11 @@
         msg.textContent = '✅ Заказ успешно отправлен!';
         form.reset();
         
-        // ЗАКРЫВАЕМ МОДАЛКУ ЧЕРЕЗ 1.5 СЕКУНДЫ
         setTimeout(() => {
           modal.classList.remove('open');
           modal.setAttribute('aria-hidden', 'true');
           document.body.classList.remove('modal-open');
-          msg.textContent = ''; // Очищаем сообщение для следующего раза
+          msg.textContent = '';
         }, 1500);
         
       } else {
@@ -73,8 +63,7 @@
       }
     } catch (error) {
       console.error('Order submission failed:', error);
-      msg.textContent = '❌ Ошибка отправки. Позвоните: +7 917 564-52-13';
+      msg.textContent = ' Ошибка отправки. Позвоните: +7 917 564-52-13';
     }
   });
 })();
-
