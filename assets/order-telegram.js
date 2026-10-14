@@ -5,7 +5,7 @@
   const TG_BOT_TOKEN = part1 + ':' + part2;
   
   // ⚠️ ВАЖНО: Вставь сюда свой реальный числовой ID чата!
-  const TG_CHAT_ID = '6254569582'; 
+  const TG_CHAT_ID = '5235744796'; 
   
   const form = document.getElementById('public-order-form');
   const modal = document.getElementById('order-modal');
