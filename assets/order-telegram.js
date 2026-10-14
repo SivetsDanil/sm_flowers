@@ -2,8 +2,8 @@
   const part1 = '8636942868';
   const part2 = 'AAHPcjYpjkYae8_m6VYchSgFQyfPyWmEgLs';
   const TG_BOT_TOKEN = part1 + ':' + part2;
-  const p2 = "5235"
-  const p1 = "744796"
+  const p2 = "625456958"
+  const p1 = "2"
   const TG_CHAT_ID = p2+p1;
   const form = document.getElementById('public-order-form');
   if (!form) return;
