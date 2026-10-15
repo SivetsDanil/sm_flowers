@@ -1,4 +1,7 @@
 (function() {
+  // Твой новый, быстрый и не блокируемый адрес
+  const API_URL = 'https://sm-flowers-api.sivets-one.workers.dev/';
+
   const form = document.getElementById('public-order-form');
   const modal = document.getElementById('order-modal');
   const msg = document.getElementById('public-order-msg');
@@ -8,7 +11,7 @@
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     msg.textContent = 'Отправляем заказ…';
-    
+
     const d = new FormData(form);
     const summary = document.getElementById('order-summary')?.textContent || 'Не указан';
     const price = (summary.match(/[\d\s\u00A0]+₽/) || [''])[0].replace(/\D/g, '');
@@ -23,7 +26,7 @@
       (d.get('address') ? `📍 Адрес: ${d.get('address')}\n` : '') +
       (d.get('date') ? `📅 Дата: ${d.get('date')}\n` : '') +
       (d.get('time') ? `🕐 Время: ${d.get('time')}\n` : '') +
-      (d.get('comment') ? ` Комментарий: ${d.get('comment')}\n` : '') +
+      (d.get('comment') ? `📝 Комментарий: ${d.get('comment')}\n` : '') +
       `\n📌 Статус: 🆕 Новый`;
 
     const keyboardRows = [];
@@ -33,8 +36,7 @@
     keyboardRows.push([{ text: '✅ Принять', callback_data: 'st:accept' }]);
 
     try {
-      // Отправляем на Netlify функцию (не блокируется в России)
-      const response = await fetch('https://frolicking-seahorse-0c10ff.netlify.app/.netlify/functions/tg', {
+      const response = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -49,21 +51,21 @@
       if (result.ok) {
         msg.textContent = '✅ Заказ успешно отправлен!';
         form.reset();
-        
+
+        // Закрываем модалку через 1.5 секунды
         setTimeout(() => {
           modal.classList.remove('open');
           modal.setAttribute('aria-hidden', 'true');
           document.body.classList.remove('modal-open');
           msg.textContent = '';
         }, 1500);
-        
+
       } else {
-        console.error('Telegram API Error:', result);
-        throw new Error(result.description || 'Ошибка Telegram');
+        throw new Error(result.description || 'Ошибка отправки');
       }
     } catch (error) {
       console.error('Order submission failed:', error);
-      msg.textContent = ' Ошибка отправки. Позвоните: +7 917 564-52-13';
+      msg.innerHTML = '⚠️ Не удалось отправить онлайн. Пожалуйста, позвоните: <a href="tel:+79175645213" style="color:#263125;font-weight:600">+7 917 564-52-13</a>';
     }
   });
 })();
